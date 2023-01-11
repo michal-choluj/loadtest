@@ -25,9 +25,7 @@ export class SocketEngine implements Engine {
   createFlow(flowOptions) {
     const stack = [this.connectionTask()];
     for (const task of flowOptions) {
-      if (this.isTaskSupported(task.type)) {
-        stack.push(this.createTask(task));
-      }
+      stack.push(this.createTask(task));
     }
     return stack;
   }
@@ -36,7 +34,6 @@ export class SocketEngine implements Engine {
     const task = new TaskEngine(taskOptions.channel, taskOptions);
     return async (ctx) => {
       await task.execute(ctx);
-      await this.sleep(1000);
     };
   }
 
@@ -45,10 +42,6 @@ export class SocketEngine implements Engine {
       ...this.config,
       type: 'connect',
     });
-  }
-
-  isTaskSupported(type: string): boolean {
-    return true;
   }
 
   private async sleep(ms) {

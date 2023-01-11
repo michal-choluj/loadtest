@@ -25,6 +25,10 @@ export const TestSchema = {
           },
         },
         {
+          type: 'sleep',
+          delay: 5000,
+        },
+        {
           type: 'emit',
           channel: 'register',
           payload: {
@@ -44,6 +48,10 @@ export const TestSchema = {
               },
             ],
           },
+        },
+        {
+          type: 'sleep',
+          delay: 1000,
         },
         {
           type: 'emit',

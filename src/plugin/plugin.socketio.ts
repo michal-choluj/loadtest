@@ -31,17 +31,6 @@ export function SocketIOPlugin(base, options) {
       });
     },
 
-    execute(context) {
-      switch (options.type) {
-        case 'connect':
-          return base.connect(context);
-        case 'emit':
-          return base.emit(context);
-        default:
-          throw new Error(`Unknown type ${options.type}`);
-      }
-    },
-
     acknowledge(context: Record<string, any>) {
       return (data) => {
         const capture = options?.acknowledge?.capture;

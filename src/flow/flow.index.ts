@@ -16,10 +16,12 @@ export class Flow {
   }
 
   async execute(): Promise<void> {
-    const context = new FlowContext();
     const pipeline = new FlowPipeline();
     const middleware = this.engine.createFlow(this.options);
     pipeline.use(middleware);
-    pipeline.execute(context);
+    for (let index = 0; index < 100; index++) {
+      const context = new FlowContext();
+      pipeline.execute(context);
+    }
   }
 }

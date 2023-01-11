@@ -28,24 +28,21 @@ export class PluginEngine {
     };
   }
 
-  public execute(context: any) {
-    console.log('Not implemented');
+  public sleep(): Promise<void> {
+    return new Promise((resolve) =>
+      setTimeout(resolve, this.options?.delay || 0),
+    );
   }
-
-  // public get(path) {
-  //   return String(path)
-  //     .split('.')
-  //     .reduce((acc, v) => {
-  //       try {
-  //         acc = acc[v];
-  //       } catch (e) {
-  //         return undefined;
-  //       }
-  //       return acc;
-  //     }, this.options);
-  // }
 
   public get type() {
     return this.options.type;
+  }
+
+  public execute(context) {
+    if (!this[this.type]) {
+      throw new Error(`Unknown type ${this.type}`);
+    }
+    console.log(`Executing ${this.type}`);
+    return this[this.type](context);
   }
 }
