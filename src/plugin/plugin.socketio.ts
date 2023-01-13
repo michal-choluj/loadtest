@@ -1,44 +1,81 @@
 import { io, Socket } from 'socket.io-client';
 import { FlowContext } from '../flow/flow.context';
 
-declare interface ExtendedSocket extends Socket {
-  context?: object;
-}
-
 export function SocketIOPlugin(base, options) {
   return {
-    async connect(context: FlowContext) {
-      const socket: ExtendedSocket = io(this.options.target, {
+    get loopSize() {
+      return options?.loop || 1;
+    },
+
+    get loopDelay() {
+      return options?.delay || 0;
+    },
+
+    async connect(context: FlowContext): Promise<Socket> {
+      const metrics = context.metrics;
+      const socket = io(this.options.target, {
         path: this.options.path,
         transports: this.options.transports,
       });
-      return new Promise((resolve, reject) => {
+      metrics.start(options.type);
+      await new Promise((resolve, reject) => {
         context.set('socket', socket);
         socket.once('connect', () => resolve(socket));
         socket.once('connect_error', (err) => reject(err));
       });
+      metrics.stop(options.type);
+      return socket;
     },
 
-    async emit(context: Record<string, any>) {
+    async emit(context: FlowContext): Promise<any> {
+      const metrics = context.metrics;
       const socket = context.get('socket');
       const acknowledge = base.acknowledge(context);
       const payload = base.payload(context);
-      return new Promise((resolve) => {
-        socket.emit(options.channel, payload, (data) => {
-          acknowledge(data);
-          resolve(data);
-        });
-      });
+      return this.loop(
+        () =>
+          new Promise((resolve) => {
+            metrics.start(options.channel);
+            socket.emit(options.channel, payload, (data) => {
+              metrics.stop(options.channel);
+              acknowledge(data);
+              resolve(data);
+            });
+          }),
+      );
     },
 
-    acknowledge(context: Record<string, any>) {
+    async loop(event: () => Promise<any>): Promise<any> {
+      const size = this.loopSize;
+      const delay = this.loopDelay;
+      for (let index = 0; index < size; index++) {
+        await event();
+        await base.sleep(delay);
+      }
+    },
+
+    acknowledge(context: FlowContext) {
       return (data) => {
-        const capture = options?.acknowledge?.capture;
-        if (capture) {
-          const captured = base.capture(capture, data);
-          context.set(`${base.name}.acknowledge`, captured);
-        }
+        this.captureResponse(context, data);
+        this.captureError(context, data);
       };
+    },
+
+    captureError(context: FlowContext, data: object) {
+      if (options?.acknowledge?.error) {
+        const error = options?.acknowledge?.error;
+        const captured = base.capture(error, data);
+        context.set(`${base.name}.error`, captured);
+        return captured;
+      }
+    },
+
+    captureResponse(context: FlowContext, data: object) {
+      if (options?.acknowledge?.capture) {
+        const capture = options?.acknowledge?.capture;
+        const captured = base.capture(capture, data);
+        context.set(`${base.name}.acknowledge`, captured);
+      }
     },
   };
 }

@@ -1,20 +1,14 @@
 export const TestSchema = {
-  config: {
-    target: 'http://voting-lb-0.dev.tectonicinteractive.com/voting',
-    maxUsers: 100,
-    servers: 1,
-  },
   scenarios: [
     {
       config: {
-        target: 'https://voting-lb-0.dev.tectonicinteractive.com/voting/1137',
+        target: 'https://voting-lb-1.dev.tectonicinteractive.com/voting/1',
         engine: 'socket.io',
         namespace: '/',
         transports: ['websocket'],
         path: '/voting/io',
-        maxUsers: 100,
-        connectionRate: 1000,
-        maxVirtualUsers: 100,
+        connectionsPerSecond: 1,
+        maxVirtualUsers: 1,
       },
       flow: [
         {
@@ -47,6 +41,13 @@ export const TestSchema = {
                 as: 'debugPin',
               },
             ],
+            error: [
+              {
+                reject: true,
+                json: '$.error',
+                as: 'error',
+              },
+            ],
           },
         },
         {
@@ -62,6 +63,27 @@ export const TestSchema = {
             phone: '$.register.payload.phone',
             pin: '$.register.acknowledge.debugPin',
             birthDate: '1999-05-05',
+          },
+          acknowledge: {
+            capture: [
+              {
+                json: '$.accessToken',
+                as: 'accessToken',
+              },
+            ],
+          },
+        },
+        {
+          type: 'sleep',
+          delay: 1000,
+        },
+        {
+          type: 'emit',
+          channel: 'vote',
+          loop: 1,
+          delay: 1000,
+          payload: {
+            contestantId: 1,
           },
         },
       ],

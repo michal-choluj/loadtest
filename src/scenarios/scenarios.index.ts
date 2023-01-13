@@ -1,5 +1,5 @@
 import { EngineFactory, EngineOptions } from '../engine/engine.index';
-import { Flow, FlowOptions } from '../flow/flow.index';
+import { FlowMetrics, FlowOptions, FlowRunner } from '../flow/flow.index';
 
 export interface ScenarioOptions {
   config: EngineOptions;
@@ -9,15 +9,18 @@ export interface ScenarioOptions {
 export class Scenario {
   protected config: EngineOptions;
   protected flow: FlowOptions[];
+  protected plugins: [] = [];
 
-  public constructor(options: ScenarioOptions) {
+  public constructor(protected options: ScenarioOptions, plugins: [] = []) {
     this.config = options.config;
     this.flow = options.flow;
+    this.plugins = plugins;
   }
 
   public async execute() {
-    const factory = new EngineFactory(this.config);
-    const flow = new Flow(factory.create(), this.flow);
-    return flow.execute();
+    const metrics = new FlowMetrics();
+    const engine = EngineFactory.create(this.config.engine, this.options);
+    const flow = new FlowRunner(engine, metrics);
+    await flow.execute();
   }
 }

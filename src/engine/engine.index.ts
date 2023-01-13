@@ -1,3 +1,4 @@
+import { ScenarioOptions } from '../scenarios/scenarios.index';
 import { Engine, SocketEngine } from './engine.socket';
 
 export interface EngineOptions {
@@ -6,17 +7,13 @@ export interface EngineOptions {
 }
 
 export class EngineFactory {
-  protected options: EngineOptions;
-  constructor(options: EngineOptions) {
-    this.options = options;
-  }
-
-  create(): Engine {
-    switch (this.options.engine) {
+  static create(name: string, options: ScenarioOptions): Engine {
+    switch (name) {
+      case 'socketio':
       case 'socket.io':
-        return new SocketEngine(this.options);
+        return new SocketEngine(options);
       default:
-        throw new Error(`Engine ${this.options.engine} is not supported`);
+        throw new Error(`Engine ${name} is not supported`);
     }
   }
 }

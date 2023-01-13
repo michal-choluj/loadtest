@@ -13,6 +13,7 @@ export function MatchPlugin() {
     match(schema, data) {
       const validate = getValidator(schema);
       if (!validate(data)) {
+        // TODO: Handle errors
         console.log(validate.errors);
       }
     },

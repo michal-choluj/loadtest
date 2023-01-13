@@ -1,6 +1,7 @@
-import { Middleware } from '../flow/flow.pipeline';
+import { FlowContext } from '../flow/flow.context';
 
 export interface Engine {
-  createTask(options: object): Middleware;
-  createFlow(options: object[]): Middleware[];
+  get maxVirtualUsers(): number;
+  get connectionsPerSecond(): number;
+  execute(context: FlowContext): Promise<void>;
 }

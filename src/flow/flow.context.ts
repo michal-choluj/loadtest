@@ -1,15 +1,21 @@
 import * as jsonpath from 'jsonpath';
-import * as _ from 'lodash';
+import { get, set } from 'lodash';
+import { FlowMetrics } from './flow.metrics';
 
 export class FlowContext {
   private storage: Record<string, any> = {};
+  public metrics: FlowMetrics;
 
-  set(namespace: string, value: any): void {
-    _.set(this.storage, namespace, value);
+  constructor(metrics: FlowMetrics) {
+    this.metrics = metrics;
+  }
+
+  set(namespace: string, value: any): Record<string, any> {
+    return set(this.storage, namespace, value);
   }
 
   get(namespace) {
-    return _.get(this.storage, namespace);
+    return get(this.storage, namespace);
   }
 
   jsonValue(path) {
