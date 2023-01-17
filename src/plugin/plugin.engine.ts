@@ -42,7 +42,6 @@ export class PluginEngine {
     if (!this[this.type]) {
       throw new Error(`Unknown extension ${this.type}`);
     }
-    console.log(`Executing ${this.type}`);
     return this[this.type](context);
   }
 }

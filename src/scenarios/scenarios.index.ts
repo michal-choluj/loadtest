@@ -1,26 +1,74 @@
+import { EventEmitter } from 'events';
 import { EngineFactory, EngineOptions } from '../engine/engine.index';
-import { FlowMetrics, FlowOptions, FlowRunner } from '../flow/flow.index';
+import { FlowContext, FlowMetrics, FlowOptions } from '../flow/flow.index';
+import { Engine } from '../engine/engine.interface';
 
 export interface ScenarioOptions {
   config: EngineOptions;
   flow: FlowOptions[];
 }
 
-export class Scenario {
+declare interface IScenarioEvents {
+  metrics: () => void;
+  finished: () => void;
+}
+
+export declare interface IScenario {
+  execute(): Promise<void>;
+  on<K extends keyof IScenarioEvents>(
+    event: K,
+    listener: IScenarioEvents[K],
+  ): this;
+  emit<K extends keyof IScenarioEvents>(
+    event: K,
+    ...args: Parameters<IScenarioEvents[K]>
+  ): boolean;
+}
+
+export class Scenario extends EventEmitter implements IScenario {
   protected config: EngineOptions;
   protected flow: FlowOptions[];
-  protected plugins: [] = [];
+  protected metrics: FlowMetrics;
+  protected engine: Engine;
 
-  public constructor(protected options: ScenarioOptions, plugins: [] = []) {
-    this.config = options.config;
+  public constructor(protected options: ScenarioOptions) {
+    super();
     this.flow = options.flow;
-    this.plugins = plugins;
+    this.config = options.config;
+    this.metrics = new FlowMetrics();
+    this.engine = EngineFactory.create(this.config.engine, this.options);
+    this.engine.on('finished', this.terminate.bind(this));
+    this.metrics.on('stats', this.emitMetrics.bind(this));
   }
 
   public async execute() {
-    const metrics = new FlowMetrics();
-    const engine = EngineFactory.create(this.config.engine, this.options);
-    const flow = new FlowRunner(engine, metrics);
-    await flow.execute();
+    const maxVirtualUsers = this.engine.maxVirtualUsers;
+    const maxUsersPerSec = this.engine.connectionsPerSecond;
+    for (let index = 0; index < maxVirtualUsers; index++) {
+      await this.createUser(maxUsersPerSec);
+    }
+  }
+
+  private async createUser(maxUsersPerSec) {
+    const timer = this.metrics.timer('flow');
+    this.engine
+      .execute(new FlowContext(this.metrics))
+      .catch(console.error)
+      .finally(() => timer.end());
+    return this.sleep(maxUsersPerSec);
+  }
+
+  private terminate() {
+    this.emit('finished', this.metrics.getStats());
+    this.metrics.terminate();
+  }
+
+  private emitMetrics(data) {
+    this.emit('metrics', data);
+  }
+
+  private sleep(maxUsersPerSec: number): Promise<void> {
+    const delay = Math.floor(1000 / maxUsersPerSec);
+    return new Promise((resolve) => setTimeout(resolve, delay));
   }
 }

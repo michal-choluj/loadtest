@@ -17,14 +17,21 @@ export function SocketIOPlugin(base, options) {
         path: this.options.path,
         transports: this.options.transports,
       });
-      metrics.start(options.type);
+      const timer = metrics.timer(base.name);
       await new Promise((resolve, reject) => {
         context.set('socket', socket);
         socket.once('connect', () => resolve(socket));
         socket.once('connect_error', (err) => reject(err));
       });
-      metrics.stop(options.type);
+      timer.end();
       return socket;
+    },
+
+    async disconnect(context: FlowContext): Promise<void> {
+      const socket = context.get('socket');
+      if (typeof socket?.disconnect === 'function') {
+        socket.disconnect();
+      }
     },
 
     async emit(context: FlowContext): Promise<any> {
@@ -35,9 +42,9 @@ export function SocketIOPlugin(base, options) {
       return this.loop(
         () =>
           new Promise((resolve) => {
-            metrics.start(options.channel);
+            const timer = metrics.timer(options.channel);
             socket.emit(options.channel, payload, (data) => {
-              metrics.stop(options.channel);
+              timer.end();
               acknowledge(data);
               resolve(data);
             });

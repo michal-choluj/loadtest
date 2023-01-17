@@ -1,25 +1,43 @@
-import { update } from 'lodash';
+import { EventEmitter } from 'events';
+import * as measured from 'measured-core';
 
-export class FlowMetrics {
-  protected storage: Record<string, any> = {};
+export class FlowMetrics extends EventEmitter {
+  protected stats: Record<string, any> = {};
+  protected interval: NodeJS.Timer;
 
   constructor() {
-    // initialize
+    super();
+    this.stats = measured.createCollection();
+    this.setInterval();
   }
 
-  public increment(path, value = 1) {
-    return update(this.storage, path, (n) => (n ? n + value : 1));
+  public timer(name: string) {
+    const timer = this.stats.timer(name);
+    return timer.start();
   }
 
-  public start(name) {
-    this.increment(`${name}.started`);
+  public getStats() {
+    const stats = this.stats.toJSON();
+    return Object.keys(stats).map((key) => {
+      return {
+        id: process.pid,
+        name: key,
+        stats: stats[key],
+      };
+    });
   }
 
-  public stop(name) {
-    this.increment(`${name}.completed`);
+  public terminate() {
+    this.stats = {};
+    clearInterval(this.interval);
   }
 
-  public aggregate(name) {
-    // initialize
+  private setInterval() {
+    this.interval = setInterval(() => {
+      const stats = this.getStats();
+      if (stats) {
+        this.emit('stats', this.getStats());
+      }
+    }, 1000);
   }
 }

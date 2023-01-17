@@ -8,6 +8,7 @@ import { SleepPlugin } from '../plugin/plugin.sleep';
 import { FlowContext } from '../flow/flow.context';
 import { FakerPlugin } from '../plugin/plugin.faker';
 import { ScenarioOptions } from '../scenarios/scenarios.index';
+import { EventEmitter } from 'stream';
 export { Engine as Engine };
 
 const TaskEngine = PluginEngine.register([
@@ -19,11 +20,13 @@ const TaskEngine = PluginEngine.register([
   FakerPlugin,
 ]);
 
-export class SocketEngine implements Engine {
+export class SocketEngine extends EventEmitter implements Engine {
   private options: any;
   private tasks: IPluginEngine[];
+  private counter = 0;
 
   constructor(options: ScenarioOptions) {
+    super();
     this.options = options;
     this.tasks = this.create();
   }
@@ -38,13 +41,18 @@ export class SocketEngine implements Engine {
 
   public async execute(context: FlowContext): Promise<void> {
     for (const task of this.tasks) {
-      try {
-        await task.execute(context);
-      } catch (error) {
-        // TODO: Add error handler
-        console.error(error);
-        return;
-      }
+      await task.execute(context);
+    }
+    this.registerProgress();
+  }
+
+  private registerProgress() {
+    if (!this.counter) {
+      this.emit('started', this.maxVirtualUsers);
+    }
+    this.counter++;
+    if (this.counter >= this.maxVirtualUsers) {
+      this.emit('finished', this.maxVirtualUsers);
     }
   }
 
@@ -58,6 +66,11 @@ export class SocketEngine implements Engine {
     for (const task of this.options?.flow) {
       stack.push(this.createTask(task));
     }
+    // stack.push(
+    //   this.createTask({
+    //     type: 'disconnect',
+    //   }),
+    // );
     return stack;
   }
 
