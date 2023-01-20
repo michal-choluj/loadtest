@@ -1,18 +1,14 @@
 import { Scenario } from '../scenarios/scenarios.index';
 import { parentPort, workerData } from 'worker_threads';
 
+const postMessage = (event, message) => {
+  parentPort.postMessage({ event, message });
+};
+
 const scenario = new Scenario(workerData);
-scenario.on('metrics', (data) => {
-  // console.log('metrics', data);
-  parentPort.postMessage(data);
-});
-
-scenario.on('finished', (data) => {
-  parentPort.postMessage(data);
-  // console.log('finished', data);
-});
-
+scenario.on('metrics', (data) => postMessage('metrics', data));
+scenario.on('finished', (data) => postMessage('exit', data));
 scenario
   .execute()
   .then(() => console.log('Scenario executed'))
-  .catch(console.error);
+  .catch(console.error); // TODO: error handling

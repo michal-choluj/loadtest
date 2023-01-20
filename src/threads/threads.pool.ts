@@ -1,22 +1,29 @@
-import { EventEmitter } from 'events';
-import { cpus } from 'os';
 import { Worker } from 'worker_threads';
+import { IMetricAggregator } from '../metric/metric.aggregator';
+import { IMetric } from '../flow/flow.metrics';
 import { NodeWorkerSettings } from './threads.types';
 
+export type DataHandler = (data: any) => void;
+
 export type PoolOptions<TWorkerData = any> = NodeWorkerSettings & {
-  /** number of workers */
+  // number of workers
   size: number;
-  /** data to pass into workers */
+  // data to pass into workers
   workerData?: TWorkerData;
+  // function to handle workers data
+  dataHandler?: DataHandler;
+  // instance of metrics aggregator
+  metricAggregator: IMetricAggregator;
 };
 
-export class Pool<TWorkerData = any> extends EventEmitter {
-  private size: number = cpus().length - 1;
+export class Pool<TWorkerData = any> {
+  private size: number;
+  private workers: Worker[] = [];
   private workerScript = `${__dirname}/threads.worker.js`;
 
-  constructor(options: PoolOptions<TWorkerData>) {
-    super();
+  private metricAggregator: IMetricAggregator;
 
+  constructor(options: PoolOptions<TWorkerData>) {
     if (typeof options.size !== 'number') {
       throw new TypeError('"size" must be the type of number');
     }
@@ -25,18 +32,25 @@ export class Pool<TWorkerData = any> extends EventEmitter {
       throw new Error('"size" must not be NaN');
     }
 
-    if (options.size < 0) {
-      throw new RangeError('"size" must not be lower than 0');
+    if (options.size < 1) {
+      throw new RangeError('"size" must not be lower than 1');
     }
 
     this.size = options.size;
+    this.metricAggregator = options.metricAggregator;
   }
 
-  public exec(config): Promise<any[]> {
+  public async execute(config): Promise<number[]> {
     const tasks = [];
     for (let index = 0; index < this.size; index++) {
       tasks.push(this.createWorker(config));
     }
+    return Promise.all(tasks);
+  }
+
+  public async terminate(): Promise<number[]> {
+    const tasks = this.workers.map((worker) => worker.terminate());
+    this.workers = [];
     return Promise.all(tasks);
   }
 
@@ -45,13 +59,23 @@ export class Pool<TWorkerData = any> extends EventEmitter {
       const worker = new Worker(this.workerScript, {
         workerData,
       });
-      worker.on('message', (data) => this.emitMessage(data, worker.threadId));
+      this.workers.push(worker);
+      worker.on('message', (data) => this.handle(data, resolve));
       worker.on('error', reject);
       worker.on('exit', resolve);
     });
   }
 
-  private emitMessage(data, threadId) {
-    this.emit('metrics', data, threadId);
+  private handle({ event, message }, next) {
+    switch (event) {
+      case 'metrics':
+        this.metricAggregator.start();
+        this.metricAggregator.update(message);
+        return;
+      case 'exit':
+        this.metricAggregator.stop();
+        this.metricAggregator.update(message);
+        return next();
+    }
   }
 }

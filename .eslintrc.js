@@ -9,6 +9,7 @@ module.exports = {
   extends: [
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
+    'plugin:yml/standard'
   ],
   root: true,
   env: {
@@ -22,4 +23,10 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
   },
+  overrides: [
+    {
+      files: ["*.yaml", "*.yml"],
+      parser: "yaml-eslint-parser",
+    },
+  ]
 };
