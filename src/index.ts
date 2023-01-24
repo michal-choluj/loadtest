@@ -1,18 +1,22 @@
 import { MetricAggregator } from './metric/metric.aggregator';
-import { LoggerReporter } from './reporter/reporter';
-import { TestSchema } from './schema';
 import { Pool } from './threads/threads.pool';
+import { HttpScenario } from './http.scenario';
+import { CsvMetricReporter } from './reporter/reporter.csv';
+import { LoggerReporter } from './reporter/reporter.logger';
 
 (async () => {
-  const logger = new LoggerReporter();
-  const aggregator = new MetricAggregator();
-  const scenario = TestSchema.scenarios.pop();
+  const logReporter = new LoggerReporter();
+  const csvReporter = new CsvMetricReporter();
 
-  aggregator.addMetricReporter(logger);
+  const aggregator = new MetricAggregator();
+  const scenario = HttpScenario.scenarios.pop();
+
+  aggregator.addMetricReporter(csvReporter);
+  aggregator.addMetricReporter(logReporter);
 
   const poll = new Pool({
     metricAggregator: aggregator,
-    size: 2,
+    size: 1,
   });
 
   await poll.execute(scenario);

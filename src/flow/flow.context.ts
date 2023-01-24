@@ -1,12 +1,12 @@
 import * as jsonpath from 'jsonpath';
 import { get, set } from 'lodash';
-import { FlowMetrics } from './flow.metrics';
+import { IMetricEngine } from '../metric/metric.core';
 
 export class FlowContext {
   private storage: Record<string, any> = {};
-  public metrics: FlowMetrics;
+  public metrics: IMetricEngine;
 
-  constructor(metrics: FlowMetrics) {
+  constructor(metrics: IMetricEngine) {
     this.metrics = metrics;
   }
 

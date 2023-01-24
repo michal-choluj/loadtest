@@ -1,6 +1,5 @@
 import { Worker } from 'worker_threads';
 import { IMetricAggregator } from '../metric/metric.aggregator';
-import { IMetric } from '../flow/flow.metrics';
 import { NodeWorkerSettings } from './threads.types';
 
 export type DataHandler = (data: any) => void;
@@ -68,11 +67,11 @@ export class Pool<TWorkerData = any> {
 
   private handle({ event, message }, next) {
     switch (event) {
-      case 'metrics':
+      case 'data':
         this.metricAggregator.start();
         this.metricAggregator.update(message);
         return;
-      case 'exit':
+      case 'finish':
         this.metricAggregator.stop();
         this.metricAggregator.update(message);
         return next();

@@ -1,12 +1,11 @@
-import { Engine } from './engine.abstract';
 import { IPluginEngine, PluginEngine } from '../plugin/plugin.engine';
 import { PayloadPlugin } from '../plugin/plugin.payload';
-import { SocketIOPlugin } from '../plugin/plugin.socketio';
 import { CapturePlugin } from '../plugin/plugin.capture';
 import { MatchPlugin } from '../plugin/plugin.match';
 import { SleepPlugin } from '../plugin/plugin.sleep';
 import { FakerPlugin } from '../plugin/plugin.faker';
-export { Engine as Engine };
+import { Engine } from '../engine/engine.abstract';
+import { SocketIOPlugin } from './plugin.socketio';
 
 const TaskEngine = PluginEngine.register([
   SocketIOPlugin,

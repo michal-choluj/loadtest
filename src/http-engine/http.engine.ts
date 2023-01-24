@@ -1,15 +1,14 @@
-import { Engine } from './engine.abstract';
 import { IPluginEngine, PluginEngine } from '../plugin/plugin.engine';
 import { PayloadPlugin } from '../plugin/plugin.payload';
-import { SocketIOPlugin } from '../plugin/plugin.socketio';
 import { CapturePlugin } from '../plugin/plugin.capture';
 import { MatchPlugin } from '../plugin/plugin.match';
 import { SleepPlugin } from '../plugin/plugin.sleep';
 import { FakerPlugin } from '../plugin/plugin.faker';
-export { Engine as Engine };
+import { Engine } from '../engine/engine.abstract';
+import { HttpPlugin } from './http.plugin';
 
 const TaskEngine = PluginEngine.register([
-  SocketIOPlugin,
+  HttpPlugin,
   PayloadPlugin,
   CapturePlugin,
   MatchPlugin,
@@ -17,7 +16,7 @@ const TaskEngine = PluginEngine.register([
   FakerPlugin,
 ]);
 
-export class SocketEngine extends Engine {
+export class HttpEngine extends Engine {
   /**
    * Create tasks based on the given scenario
    *
@@ -25,12 +24,7 @@ export class SocketEngine extends Engine {
    * @memberof SocketEngine
    */
   protected populate(): IPluginEngine[] {
-    const stack = [
-      this.createTask({
-        ...this.options.config,
-        type: 'connect',
-      }),
-    ];
+    const stack = [];
     for (const task of this.options?.flow) {
       stack.push(this.createTask(task));
     }
@@ -44,6 +38,9 @@ export class SocketEngine extends Engine {
    * @returns {IPluginEngine}
    */
   private createTask(task: Record<string, any>): IPluginEngine {
-    return new TaskEngine(task.channel || task.type, task);
+    return new TaskEngine(task.path || task.type, {
+      ...this.options.config,
+      ...task,
+    });
   }
 }

@@ -1,6 +1,6 @@
 import { chain } from 'lodash';
 import { IHistogram, IMeter, IMetric } from '../flow/flow.metrics';
-import { IMetricReporter } from '../reporter/reporter';
+import { IMetricReporter } from '../reporter/reporter.core';
 
 export interface IMetricAggregator {
   get: () => IMetric[];

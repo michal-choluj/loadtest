@@ -1,4 +1,4 @@
-import { Engine } from '../engine/engine.interface';
+import { Engine } from '../engine/engine.abstract';
 import { FlowMetrics } from './flow.metrics';
 
 export interface FlowOptions {

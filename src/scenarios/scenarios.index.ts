@@ -1,16 +1,27 @@
 import { EventEmitter } from 'events';
-import { EngineFactory, EngineOptions } from '../engine/engine.index';
-import { FlowContext, FlowMetrics, FlowOptions } from '../flow/flow.index';
-import { Engine } from '../engine/engine.interface';
+import { EngineOptions } from '../engine/engine.index';
+import { FlowOptions } from '../flow/flow.index';
+import { IEngine } from '../engine/engine.abstract';
+import { IMetric, IMetricEngine } from '../metric/metric.core';
 
 export interface ScenarioOptions {
   config: EngineOptions;
   flow: FlowOptions[];
 }
 
+interface IEngineConstructor {
+  new (options: ScenarioOptions): IEngine;
+}
+
+interface Strategy {
+  name: string;
+  engine: IEngineConstructor;
+}
+
 declare interface IScenarioEvents {
-  metrics: () => void;
-  finished: () => void;
+  start: (data: IMetric[]) => void;
+  data: (data: IMetric[]) => void;
+  finish: (data: IMetric[]) => void;
 }
 
 export declare interface IScenario {
@@ -28,47 +39,53 @@ export declare interface IScenario {
 export class Scenario extends EventEmitter implements IScenario {
   protected config: EngineOptions;
   protected flow: FlowOptions[];
-  protected metrics: FlowMetrics;
-  protected engine: Engine;
+  protected engine: IEngine;
+  public strategies: Strategy[] = [];
 
-  public constructor(protected options: ScenarioOptions) {
+  public constructor(
+    private options: ScenarioOptions,
+    private metric: IMetricEngine,
+  ) {
     super();
     this.flow = options.flow;
     this.config = options.config;
-    this.metrics = new FlowMetrics();
-    this.engine = EngineFactory.create(this.config.engine, this.options);
-    this.engine.on('finished', this.terminate.bind(this));
-    this.metrics.on('stats', this.emitMetrics.bind(this));
+    this.metric.on('data', (data) => this.data(data));
   }
 
   public async execute() {
-    const maxVirtualUsers = this.engine.maxVirtualUsers;
-    const maxUsersPerSec = this.engine.connectionsPerSecond;
-    for (let index = 0; index < maxVirtualUsers; index++) {
-      await this.createUser(maxUsersPerSec);
-    }
+    const engine = this.createEngine();
+    engine.on('start', () => this.start());
+    engine.on('finish', () => this.stop());
+    engine.setMetricClient(this.metric);
+    return engine.execute();
   }
 
-  private async createUser(maxUsersPerSec) {
-    const timer = this.metrics.timer('flow');
-    this.engine
-      .execute(new FlowContext(this.metrics))
-      .catch(console.error)
-      .finally(() => timer.end());
-    return this.sleep(maxUsersPerSec);
+  public addEngine(name: string, engine: IEngineConstructor): void {
+    this.strategies.push({ name: name, engine: engine });
   }
 
-  private terminate() {
-    this.emit('finished', this.metrics.getStats());
-    this.metrics.terminate();
+  public getEngine(name: string): Strategy {
+    return this.strategies.find(
+      (strategy): strategy is typeof strategy => strategy.name === name,
+    );
   }
 
-  private emitMetrics(data) {
-    this.emit('metrics', data);
+  private createEngine(): IEngine {
+    const { engine: Engine } = this.getEngine(this.config.engine);
+    return new Engine(this.options);
   }
 
-  private sleep(maxUsersPerSec: number): Promise<void> {
-    const delay = Math.floor(1000 / maxUsersPerSec);
-    return new Promise((resolve) => setTimeout(resolve, delay));
+  private stop() {
+    this.emit('finish', this.metric.getStats());
+    this.metric.stop();
+  }
+
+  private start() {
+    this.emit('start', this.metric.getStats());
+    this.metric.start();
+  }
+
+  private data(data: IMetric[]) {
+    this.emit('data', data);
   }
 }
