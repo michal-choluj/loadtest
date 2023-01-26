@@ -1,7 +1,0 @@
-{
-  "name": "@loadtest/http-engine",
-  "private": true,
-  "dependencies": {
-    "got": "^12.5.3"
-  }
-}

@@ -1,7 +1,6 @@
-import { FlowContext } from '../flow/flow.context';
 import axios, { AxiosResponse } from 'axios';
-import { PluginEngine } from '../plugin/plugin.index';
-import { FlowOptions } from '../flow/flow.index';
+import { PluginEngine } from '../plugin';
+import { Context } from '../core';
 
 class Plugin {
   constructor(private plugin, private options) {}
@@ -15,33 +14,50 @@ class Plugin {
   }
 
   get capture() {
-    return this.options?.response?.capture;
+    return this.options?.capture;
   }
 
-  get url() {
-    return `${this.target}${this.options.path}`;
+  get validate() {
+    return this.options?.validate;
   }
 
   get payload() {
     return this.options?.payload;
   }
 
-  public captureResponse(context: FlowContext, data: object) {
+  get url() {
+    return `${this.target}${this.options.path}`;
+  }
+
+  public captureResponse(context: Context, data: object) {
     if (this.capture) {
-      const capture = this.options?.acknowledge?.capture;
-      const captured = this.plugin.capture(capture, data);
-      context.set(`${this.plugin.name}.response`, captured);
+      for (const param of this.capture) {
+        const value = this.plugin.capture(data, param.json);
+        context.set(param.as, value);
+      }
     }
   }
 
-  public async makeRequest(context: FlowContext): Promise<AxiosResponse> {
+  public validateResponse(context: Context, data: object) {
     const metrics = context.metrics;
-    const timer = metrics.getTimer(this.plugin.name);
+    if (this.validate) {
+      const validMeter = metrics.getCounter(`invalid:${this.options.path}`);
+      const isValid = this.plugin.validate(this.validate, data);
+      if (!isValid) {
+        validMeter.inc();
+      }
+    }
+  }
+
+  public async makeRequest(context: Context): Promise<AxiosResponse> {
+    const metrics = context.metrics;
+    const payload = this.plugin.payload(context);
+    const timer = metrics.getTimer(`${this.method}:${this.options.path}`);
     const stopWatch = timer.start();
     const data = await axios({
       method: this.method,
-      url: this.url,
-      data: this.payload,
+      url: context.template(this.url),
+      data: payload,
     });
     stopWatch.stop();
     return data;
@@ -54,24 +70,33 @@ class Plugin {
  * @param {FlowOptions} options
  * @returns {Object}
  */
-export function HttpPlugin(base: PluginEngine, options: FlowOptions) {
+export function HttpPlugin(base: PluginEngine, options: Context) {
   const plugin = new Plugin(base, options);
   return {
-    async get(context: FlowContext): Promise<void> {
-      const data = await plugin.makeRequest(context);
-      plugin.captureResponse(context, data);
+    async get(context: Context): Promise<void> {
+      const response = await plugin.makeRequest(context);
+      plugin.captureResponse(context, response.data);
+      plugin.validateResponse(context, response.data);
     },
-    async post(context: FlowContext): Promise<void> {
-      await plugin.makeRequest(context);
+    async post(context: Context): Promise<void> {
+      const response = await plugin.makeRequest(context);
+      plugin.captureResponse(context, response.data);
+      plugin.validateResponse(context, response.data);
     },
-    async path(context: FlowContext): Promise<void> {
-      await plugin.makeRequest(context);
+    async path(context: Context): Promise<void> {
+      const response = await plugin.makeRequest(context);
+      plugin.captureResponse(context, response.data);
+      plugin.validateResponse(context, response.data);
     },
-    async put(context: FlowContext): Promise<void> {
-      await plugin.makeRequest(context);
+    async put(context: Context): Promise<void> {
+      const response = await plugin.makeRequest(context);
+      plugin.captureResponse(context, response.data);
+      plugin.validateResponse(context, response.data);
     },
-    async delete(context: FlowContext): Promise<void> {
-      await plugin.makeRequest(context);
+    async delete(context: Context): Promise<void> {
+      const response = await plugin.makeRequest(context);
+      plugin.captureResponse(context, response.data);
+      plugin.validateResponse(context, response.data);
     },
   };
 }

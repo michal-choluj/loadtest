@@ -1,19 +1,24 @@
-import { IPluginEngine, PluginEngine } from '../plugin/plugin.engine';
-import { PayloadPlugin } from '../plugin/plugin.payload';
-import { CapturePlugin } from '../plugin/plugin.capture';
-import { MatchPlugin } from '../plugin/plugin.match';
-import { SleepPlugin } from '../plugin/plugin.sleep';
-import { FakerPlugin } from '../plugin/plugin.faker';
-import { Engine } from '../engine/engine.abstract';
+import { Engine } from '../core';
 import { HttpPlugin } from './http.plugin';
+import {
+  TemplatePlugin,
+  FakerPlugin,
+  SleepPlugin,
+  ValidatePlugin,
+  CapturePlugin,
+  PayloadPlugin,
+  IPluginEngine,
+  PluginEngine,
+} from '../plugin';
 
 const TaskEngine = PluginEngine.register([
   HttpPlugin,
   PayloadPlugin,
   CapturePlugin,
-  MatchPlugin,
+  ValidatePlugin,
   SleepPlugin,
   FakerPlugin,
+  TemplatePlugin,
 ]);
 
 export class HttpEngine extends Engine {
@@ -21,10 +26,10 @@ export class HttpEngine extends Engine {
    * Create tasks based on the given scenario
    *
    * @returns {IPluginEngine[]}
-   * @memberof SocketEngine
+   * @memberof HttpEngine
    */
   protected populate(): IPluginEngine[] {
-    const stack = [];
+    const stack: IPluginEngine[] = [];
     for (const task of this.options?.flow) {
       stack.push(this.createTask(task));
     }
@@ -36,6 +41,7 @@ export class HttpEngine extends Engine {
    *
    * @param {FlowOptions} task
    * @returns {IPluginEngine}
+   * @memberof HttpEngine
    */
   private createTask(task: Record<string, any>): IPluginEngine {
     return new TaskEngine(task.path || task.type, {

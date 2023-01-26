@@ -1,6 +1,6 @@
 import * as Ajv from 'ajv';
 
-export function MatchPlugin() {
+export function ValidatePlugin() {
   let cache = null;
   const ajv = new Ajv();
   const getValidator = (schema) => {
@@ -10,12 +10,9 @@ export function MatchPlugin() {
     return cache;
   };
   return {
-    match(schema, data) {
+    validate(schema, data) {
       const validate = getValidator(schema);
-      if (!validate(data)) {
-        // TODO: Handle errors
-        console.log(validate.errors);
-      }
+      return validate(data) ? true : false;
     },
   };
 }

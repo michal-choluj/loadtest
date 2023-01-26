@@ -1,9 +1,8 @@
-import { Scenario } from '../scenarios/scenarios.index';
 import { parentPort, workerData } from 'worker_threads';
-import { MetricAdapter } from '../metric/metric.adapter';
-import { MetricEngine } from '../metric/metric.core';
-import { HttpEngine } from '../http-engine/http.engine';
-import { SocketEngine } from '../socket-engine/engine.socket';
+import { Scenario } from '../core';
+import { MetricAdapter, MetricEngine } from '../metric';
+import { SocketEngine } from '../socket-engine';
+import { HttpEngine } from '../http-engine';
 
 const postMessage = (event, message) => {
   parentPort.postMessage({ event, message });

@@ -1,4 +1,4 @@
-import { FlowContext } from '../flow/flow.context';
+import { Context } from '../core/core.context';
 
 type ApiExtension = { [key: string]: any };
 export type Plugin = (instance: PluginEngine, options: any) => ApiExtension;
@@ -8,7 +8,7 @@ type ClassWithPlugins = Constructor<any> & {
 };
 
 export interface IPluginEngine {
-  execute(context: FlowContext);
+  execute(context: Context): Promise<void>;
 }
 
 export class PluginEngine {
@@ -38,9 +38,9 @@ export class PluginEngine {
     return this.options.type;
   }
 
-  public execute(context: FlowContext) {
+  public execute(context: Context): Promise<void> {
     if (!this[this.type]) {
-      throw new Error(`Unknown extension ${this.type}`);
+      throw new Error(`Unknown task extension ${this.type}`);
     }
     return this[this.type](context);
   }

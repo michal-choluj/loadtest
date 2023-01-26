@@ -72,8 +72,8 @@ export class Pool<TWorkerData = any> {
         this.metricAggregator.update(message);
         return;
       case 'finish':
-        this.metricAggregator.stop();
         this.metricAggregator.update(message);
+        this.metricAggregator.stop();
         return next();
     }
   }

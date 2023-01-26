@@ -17,15 +17,19 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    // "moduleResolution": "node",
-    // "esModuleInterop": true,
     "allowJs": true,
-    "lib": ["es2020"]
-    // "composite": true
-  }
-  // "files": [],
-  // "references": [
-  //   { "path": "packages/socket-engine" },
-  //   { "path": "packages/http-engine" }
-  // ]
+    "lib": ["es2020"],
+    "composite": true
+  },
+  "references": [
+    {
+      "path": "./packages/pulse-http-engine"
+    },
+    {
+       "path": "./packages/pulse-metric-engine"
+    },
+    {
+       "path": "./packages/pulse-core"
+    }
+  ]
 }

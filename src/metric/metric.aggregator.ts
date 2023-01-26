@@ -1,6 +1,11 @@
 import { chain } from 'lodash';
-import { IHistogram, IMeter, IMetric } from '../flow/flow.metrics';
-import { IMetricReporter } from '../reporter/reporter.core';
+import {
+  ICounter,
+  IHistogram,
+  IMeter,
+  IMetric,
+  IMetricReporter,
+} from '../metric';
 
 export interface IMetricAggregator {
   get: () => IMetric[];
@@ -50,8 +55,9 @@ export class MetricAggregator implements IMetricAggregator {
   public getByName(name: string): IMetric {
     return {
       name,
-      meter: this.meter(name),
-      histogram: this.histogram(name),
+      meter: this.has(name, 'meter') ? this.meter(name) : undefined,
+      histogram: this.has(name, 'histogram') ? this.histogram(name) : undefined,
+      counter: this.has(name, 'counter') ? this.counter(name) : undefined,
     };
   }
 
@@ -105,7 +111,7 @@ export class MetricAggregator implements IMetricAggregator {
   /**
    * Adds a new {@link MetricReporter} to create report
    *
-   * @param {MetricReporter} MetricReporter
+   * @param {MetricReporter} metricReporter
    * @returns {this}
    * @memberof MetricAggregator
    */
@@ -126,6 +132,19 @@ export class MetricAggregator implements IMetricAggregator {
       reporter.createReport(metrics);
     }
     return this;
+  }
+
+  /**
+   * Aggregate data that things that increment or decrement
+   *
+   * @param {String} name
+   * @returns {IMeter}
+   * @memberof MetricAggregator
+   */
+  private counter(name: string): ICounter {
+    return {
+      count: this.sum(name, 'counter.count'),
+    };
   }
 
   /**
@@ -168,6 +187,10 @@ export class MetricAggregator implements IMetricAggregator {
       p99: this.mean(name, 'histogram.p99'),
       p999: this.mean(name, 'histogram.p999'),
     };
+  }
+
+  private has(name: string, type: string) {
+    return this.storage.find((s) => s.name === name && s[type]);
   }
 
   /**
