@@ -84,8 +84,10 @@ export class Scenario extends EventEmitter implements IScenario {
   }
 
   private stop() {
-    this.emit('finish', this.metric.getStats());
-    this.metric.stop();
+    setTimeout(() => {
+      this.emit('finish', this.metric.getStats());
+      this.metric.stop();
+    }, 1000);
   }
 
   private start() {

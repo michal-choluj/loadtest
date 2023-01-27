@@ -5,10 +5,16 @@
   "typings": "./dist/index.d.ts",
   "license": "MIT",
   "scripts": {
-    "prebuild": "rimraf dist",
+    "clean": "rimraf dist & rimraf tsconfig.tsbuildinfo",
+    "prebuild": "npm run clean",
     "build": "tsc --p tsconfig.json",
+    "build:watch": "npm run clean && tsc --p tsconfig.json --watch",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"libs/**/*.ts\"",
+    "start": "npm run build && node dist/src/index",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
+  },
+  "peerDependencies": {
+    "@pulseio/metric-engine": "0.1.x"
   },
   "dependencies": {
     "@fast-csv/format": "^4.3.5",

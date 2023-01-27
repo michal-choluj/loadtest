@@ -1,20 +1,15 @@
 {
-  "name": "monorepo",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "name": "@pulse/io",
+  "version": "0.0.0",
+  "description": "The load testing tool",
+  "author": "MichaelC",
   "private": true,
   "license": "MIT",
   "scripts": {
-    "prebuild": "rimraf dist",
-    "build": "tsc --p tsconfig.build.json",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"libs/**/*.ts\"",
-    "start": "npm run build && node dist/src/index",
-    "start:dev": "npx nodemon",
-    "start:prod": "npm start",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
+    "build": "lerna run --include-dependencies --stream build && lerna link",
+    "build:turbo": "turbo run build && lerna link",
+    "bootstrap": "lerna bootstrap"
   },
-  "dependencies": {},
   "devDependencies": {
     "@types/jsonpath": "^0.2.0",
     "@types/lodash": "^4.14.191",
@@ -25,13 +20,12 @@
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-yml": "^1.4.0",
-    "nodemon": "^2.0.20",
-    "pnpm": "^7.26.0",
     "prettier": "^2.8.3",
     "rimraf": "^4.1.2",
     "source-map-support": "^0.5.21",
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
+    "tsc-watch": "^6.0.0",
     "tsconfig-paths": "4.1.2",
     "typescript": "^4.9.4"
   },

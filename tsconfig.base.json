@@ -1,35 +1,35 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "es2020",
-    "sourceMap": true,
-    "outDir": "./dist",
-    "baseUrl": "./",
-    "incremental": true,
-    "skipLibCheck": true,
-    "strictNullChecks": false,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false,
-    "allowJs": true,
-    "lib": ["es2020"],
-    "composite": true
-  },
-  "references": [
-    {
-      "path": "./packages/pulse-http-engine"
+    "compilerOptions": {
+        "module": "commonjs",
+        "declaration": true,
+        "removeComments": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "allowSyntheticDefaultImports": true,
+        "target": "es2020",
+        "sourceMap": true,
+        "outDir": "./dist",
+        "baseUrl": "./",
+        "incremental": true,
+        "skipLibCheck": true,
+        "strictNullChecks": false,
+        "noImplicitAny": false,
+        "strictBindCallApply": false,
+        "forceConsistentCasingInFileNames": false,
+        "noFallthroughCasesInSwitch": false,
+        "allowJs": true,
+        "lib": [
+            "es2020"
+        ],
+        "composite": true,
+        "paths": {
+            "@pulse/core": ["../pulse-http-engine/src"],
+            "@pulse/http-engine": ["../pulse-http-engine/src"],
+            "@pulse/socket-engine": ["../pulse-socket-engine/src"],
+            "@pulse/log-reporter": ["../pulse-log-reporter/src"],
+            "@pulse/csv-reporter": ["../pulse-csv-reporter/src"],
+            "@pulse/metric-engine": ["../pulse-metric-engine/src"],
+            "@pulse/threads": ["../pulse-threads/src"],
+          }
     },
-    {
-       "path": "./packages/pulse-metric-engine"
-    },
-    {
-       "path": "./packages/pulse-core"
-    }
-  ]
 }

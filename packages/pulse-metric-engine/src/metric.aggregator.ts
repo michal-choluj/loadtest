@@ -40,6 +40,14 @@ export class MetricAggregator implements IMetricAggregator {
    */
   private timer: NodeJS.Timer;
 
+  /**
+   * Creates an instance of {@link MetricAggregator}
+   *
+   * @param {Number} interval
+   * @memberof CsvMetricReporter
+   */
+  constructor(private interval: number = 1000) {}
+
   public get(): IMetric[] {
     const metrics = [...new Set(this.storage.map((item) => item.name))];
     return metrics.map((name) => this.getByName(name));
@@ -90,7 +98,7 @@ export class MetricAggregator implements IMetricAggregator {
    */
   public start(): this {
     if (!this.timer) {
-      this.timer = setInterval(() => this.createReport(), 1000);
+      this.timer = setInterval(() => this.createReport(), this.interval);
     }
     return this;
   }
@@ -103,7 +111,9 @@ export class MetricAggregator implements IMetricAggregator {
    */
   public stop(): this {
     if (this.timer) {
-      this.timer.unref();
+      setTimeout(() => {
+        this.timer.unref();
+      }, this.interval);
     }
     return this;
   }

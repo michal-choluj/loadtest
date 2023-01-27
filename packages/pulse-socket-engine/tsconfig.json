@@ -1,11 +1,15 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "noEmit": false,
+    "declaration": true,
     "outDir": "./dist",
     "rootDir": "./src",
     "composite": true
   },
-  "include": ["src"],
-  "exclude": ["dist"]
+  "include": ["./src"],
+  "references": [
+    {
+       "path": "../pulse-core"
+    }
+  ]
 }

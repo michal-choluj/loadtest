@@ -1,0 +1,33 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "declaration": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "composite": true,
+    "noEmit": false
+
+  },
+  "include": ["./src"],
+  "exclude": ["./dist"],
+  "references": [
+    {
+       "path": "../pulse-core"
+    },
+    {
+      "path": "../pulse-http-engine"
+    },
+    {
+      "path": "../pulse-metric-engine"
+    },
+    {
+      "path": "../pulse-threads"
+    },
+    {
+      "path": "../pulse-log-reporter"
+    },
+    {
+      "path": "../pulse-csv-reporter"
+    }
+  ]
+}

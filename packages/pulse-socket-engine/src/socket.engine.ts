@@ -1,5 +1,5 @@
 import { Engine } from '@pulseio/core';
-import { HttpPlugin } from './http.plugin';
+import { SocketIOPlugin } from './socket.plugin';
 import {
   TemplatePlugin,
   FakerPlugin,
@@ -12,24 +12,29 @@ import {
 } from '@pulseio/core';
 
 const TaskEngine = PluginEngine.register([
-  HttpPlugin,
+  SocketIOPlugin,
+  TemplatePlugin,
   PayloadPlugin,
   CapturePlugin,
   ValidatePlugin,
   SleepPlugin,
   FakerPlugin,
-  TemplatePlugin,
 ]);
 
-export class HttpEngine extends Engine {
+export class SocketEngine extends Engine {
   /**
    * Create tasks based on the given scenario
    *
    * @returns {IPluginEngine[]}
-   * @memberof HttpEngine
+   * @memberof SocketEngine
    */
   protected populate(): IPluginEngine[] {
-    const stack: IPluginEngine[] = [];
+    const stack = [
+      this.createTask({
+        ...this.options.config,
+        type: 'connect',
+      }),
+    ];
     for (const task of this.options?.flow) {
       stack.push(this.createTask(task));
     }
@@ -39,14 +44,11 @@ export class HttpEngine extends Engine {
   /**
    * Create tasks based on the given configuration
    *
-   * @param {Record<string, any>} task
+   * @param {FlowOptions} task
    * @returns {IPluginEngine}
-   * @memberof HttpEngine
+   * @memberof SocketEngine
    */
   private createTask(task: Record<string, any>): IPluginEngine {
-    return new TaskEngine(task.path || task.type, {
-      ...this.options.config,
-      ...task,
-    });
+    return new TaskEngine(task.channel || task.type, task);
   }
 }

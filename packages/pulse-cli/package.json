@@ -1,0 +1,40 @@
+{
+  "name": "@pulseio/cli",
+  "version": "0.1.0",
+  "main": "./dist/pulse.js",
+  "typings": "./dist/pulse.d.ts",
+  "license": "MIT",
+  "bin": {
+    "pulse": "dist/pulse.js"
+  },
+  "scripts": {
+    "clean": "rimraf dist & rimraf tsconfig.tsbuildinfo",
+    "prebuild": "npm run clean",
+    "build": "tsc --p tsconfig.json && yarn install --force",
+    "build:watch": "npm run clean && tsc --p tsconfig.json --watch",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"libs/**/*.ts\"",
+    "start": "npm run build && node dist/src/index",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
+    
+  },
+  "peerDependencies": {
+    "@pulseio/core": "^0.1.0",
+    "@pulseio/csv-reporter": "^0.1.0",
+    "@pulseio/http-engine": "^0.1.0",
+    "@pulseio/log-reporter": "^0.1.0",
+    "@pulseio/metric-engine": "^0.1.0",
+    "@pulseio/threads": "^0.1.0"
+  },
+  "dependencies": {
+    "@pulseio/core": "^0.1.0",
+    "@pulseio/csv-reporter": "^0.1.0",
+    "@pulseio/http-engine": "^0.1.0",
+    "@pulseio/log-reporter": "^0.1.0",
+    "@pulseio/metric-engine": "^0.1.0",
+    "@pulseio/threads": "^0.1.0",
+    "commander": "^10.0.0"
+  },
+  "devDependencies": {
+    "@commander-js/extra-typings": "^10.0.1"
+  }
+}
