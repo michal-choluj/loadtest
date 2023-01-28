@@ -1,22 +1,7 @@
 import { EventEmitter } from 'events';
 import { IEngine } from './index';
 import { IMetric, IMetricEngine } from '@pulseio/metric-engine';
-
-export interface ConfigOptions {
-  maxRateLimit: number;
-  maxVirtualUsers: number;
-  target: string;
-  engine: string;
-}
-
-export interface FlowOptions {
-  type: string;
-}
-
-export interface IScenarioOptions {
-  config: ConfigOptions;
-  flow: FlowOptions[];
-}
+import { ScenarioOptionsDto, IScenarioOptions } from './core.scenarioDto';
 
 interface IEngineConstructor {
   new (options: IScenarioOptions): IEngine;
@@ -34,7 +19,7 @@ declare interface IScenarioEvents {
 }
 
 export declare interface IScenario {
-  execute(): Promise<void>;
+  execute(options: IScenarioOptions): Promise<void>;
   on<K extends keyof IScenarioEvents>(
     event: K,
     listener: IScenarioEvents[K],
@@ -46,22 +31,16 @@ export declare interface IScenario {
 }
 
 export class Scenario extends EventEmitter implements IScenario {
-  protected config: ConfigOptions;
-  protected flow: FlowOptions[];
   protected engines: IEngineStrategy[] = [];
 
-  public constructor(
-    private options: IScenarioOptions,
-    private metric: IMetricEngine,
-  ) {
+  public constructor(private metric: IMetricEngine) {
     super();
-    this.flow = options.flow;
-    this.config = options.config;
     this.metric.on('data', (data) => this.data(data));
   }
 
-  public async execute() {
-    const engine = this.createEngine();
+  public async execute(opts: IScenarioOptions) {
+    const scenario = new ScenarioOptionsDto(opts).validate();
+    const engine = this.createEngine(scenario);
     engine.on('start', () => this.start());
     engine.on('finish', () => this.stop());
     engine.setMetricClient(this.metric);
@@ -78,9 +57,12 @@ export class Scenario extends EventEmitter implements IScenario {
     );
   }
 
-  private createEngine(): IEngine {
-    const { engine: Engine } = this.getEngine(this.config.engine);
-    return new Engine(this.options);
+  private createEngine(opts: ScenarioOptionsDto): IEngine {
+    const strategy = this.getEngine(opts.engineName);
+    if (!strategy) {
+      throw new Error(`Could not find engine ${opts.engine}`);
+    }
+    return new strategy.engine(opts);
   }
 
   private stop() {

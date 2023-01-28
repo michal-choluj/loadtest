@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { IMetricEngine } from '@pulseio/metric-engine';
 import { IPluginEngine } from './core.plugin';
-import { IScenarioOptions, Context } from './index';
+import { Context, ScenarioOptionsDto } from './index';
 
 declare interface IEngineEvents {
   start: () => void;
@@ -79,11 +79,11 @@ export interface IEngine {
  */
 export abstract class Engine extends EventEmitter implements IEngine {
   protected counter = 0;
-  protected options: IScenarioOptions;
+  protected options: ScenarioOptionsDto;
   protected tasks: IPluginEngine[];
   protected metric: IMetricEngine;
 
-  constructor(options: IScenarioOptions) {
+  constructor(options: ScenarioOptionsDto) {
     super();
     this.options = options;
     this.tasks = this.populate();
@@ -96,7 +96,7 @@ export abstract class Engine extends EventEmitter implements IEngine {
    * @memberof Engine
    */
   public get maxRateLimit(): number {
-    return this.options?.config?.maxRateLimit || 0;
+    return this.options.maxRateLimit;
   }
 
   /**
@@ -106,7 +106,7 @@ export abstract class Engine extends EventEmitter implements IEngine {
    * @memberof Engine
    */
   public get maxVirtualUsers(): number {
-    return this.options?.config?.maxVirtualUsers || 0;
+    return this.options.maxVirtualUsers;
   }
 
   /**

@@ -31,7 +31,7 @@ export class SocketEngine extends Engine {
   protected populate(): IPluginEngine[] {
     const stack = [
       this.createTask({
-        ...this.options.config,
+        ...this.options.engine,
         type: 'connect',
       }),
     ];
@@ -44,7 +44,7 @@ export class SocketEngine extends Engine {
   /**
    * Create tasks based on the given configuration
    *
-   * @param {FlowOptions} task
+   * @param {IFlowOptions} task
    * @returns {IPluginEngine}
    * @memberof SocketEngine
    */

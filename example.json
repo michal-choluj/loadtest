@@ -1,54 +1,52 @@
 {
-    "scenarios": [
+  "scenarios": [
+    {
+      "engine": {
+        "name": "http",
+        "target": "http://localhost:3333",
+        "maxVirtualUsers": 100,
+        "maxRateLimit": 10
+      },
+      "flow": [
         {
-            "config": {
-                "target": "http://localhost:3333",
-                "engine": "http",
-                "maxVirtualUsers": 100,
-                "maxRateLimit": 10
+          "type": "get",
+          "path": "/stats"
+        },
+        {
+          "type": "post",
+          "path": "/configuration",
+          "payload": {
+            "servers": 1,
+            "workers": 1,
+            "packageName": "name",
+            "config": {},
+            "stats": {},
+            "description": {
+              "plugin": "faker",
+              "function": "lorem.paragraph"
+            }
+          },
+          "capture": [
+            {
+              "json": "$.id",
+              "as": "configurationId"
+            }
+          ]
+        },
+        {
+          "type": "get",
+          "path": "/configuration/${configurationId}",
+          "validate": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              }
             },
-            "flow": [
-                {
-                    "type": "get",
-                    "path": "/stats"
-                },
-                {
-                    "type": "post",
-                    "path": "/configuration",
-                    "payload": {
-                        "servers": 1,
-                        "workers": 1,
-                        "packageName": "name",
-                        "config": {},
-                        "stats": {},
-                        "description": {
-                            "plugin": "faker",
-                            "function": "lorem.paragraph"
-                        }
-                    },
-                    "capture": [
-                        {
-                            "json": "$.id",
-                            "as": "configurationId"
-                        }
-                    ]
-                },
-                {
-                    "type": "get",
-                    "path": "/configuration/${configurationId}",
-                    "validate": {
-                        "type": "object",
-                        "properties": {
-                            "id": {
-                                "type": "integer"
-                            }
-                        },
-                        "required": [
-                            "id"
-                        ]
-                    }
-                }
-            ]
+            "required": ["id"]
+          }
         }
-    ]
+      ]
+    }
+  ]
 }

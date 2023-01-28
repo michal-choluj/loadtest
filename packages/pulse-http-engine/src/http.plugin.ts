@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { Context, PluginEngine } from '@pulseio/core';
+import { Context, IFlowOptions, PluginEngine } from '@pulseio/core';
 
 class Plugin {
   constructor(private plugin, private options) {}
@@ -66,10 +66,10 @@ class Plugin {
 /**
  *
  * @param {PluginEngine} base
- * @param {FlowOptions} options
+ * @param {IFlowOptions} options
  * @returns {Object}
  */
-export function HttpPlugin(base: PluginEngine, options: Context) {
+export function HttpPlugin(base: PluginEngine, options: IFlowOptions) {
   const plugin = new Plugin(base, options);
   return {
     async get(context: Context): Promise<void> {

@@ -30,7 +30,7 @@ export class HttpEngine extends Engine {
    */
   protected populate(): IPluginEngine[] {
     const stack: IPluginEngine[] = [];
-    for (const task of this.options?.flow) {
+    for (const task of this.options.flow) {
       stack.push(this.createTask(task));
     }
     return stack;
@@ -45,7 +45,7 @@ export class HttpEngine extends Engine {
    */
   private createTask(task: Record<string, any>): IPluginEngine {
     return new TaskEngine(task.path || task.type, {
-      ...this.options.config,
+      ...this.options.engine,
       ...task,
     });
   }
